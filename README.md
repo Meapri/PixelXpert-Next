@@ -46,8 +46,15 @@ For older Android versions, use the upstream releases:
 For KernelSU, grant root access to PixelXpert manually (it isn't requested automatically as in Magisk).
 <hr>
 
+### Documentation
+Developer docs live in [`docs/`](docs/):
+- [Architecture](docs/ARCHITECTURE.md) — how the app / Xposed hooks / root service fit together
+- [Adding a modpack](docs/ADDING_A_MODPACK.md) — recipe for a new customization
+- [Building](docs/BUILDING.md) — toolchain setup and build commands
+<hr>
+
 ### Building
-Requires **JDK 21** and the **Android SDK (Platform 36, build-tools)**. No NDK compilation is needed. The Xposed API jar is bundled under `app/lib/`.
+Requires **JDK 21** and the **Android SDK (Platform 36, build-tools)**. No NDK compilation is needed. The Xposed API jar is bundled under `app/lib/`. See [docs/BUILDING.md](docs/BUILDING.md) for full setup.
 
 ```
 ./gradlew assembleDebug        # debug APK
