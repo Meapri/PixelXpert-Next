@@ -9,7 +9,7 @@ import android.content.Context;
 import android.util.ArraySet;
 import android.view.View;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Set;
 
 import io.github.libxposed.api.XposedModuleInterface;
@@ -82,8 +82,10 @@ public class StatusIconTuner extends XposedModPack {
 	private void setIgnoredIcons(Object container, Set<String> ignorableSlots){
 		try
 		{
+			// mIgnoredSlots is an ArrayList on Android <=16 but a Set (HashSet) since
+			// Android 17. Cast to their common supertype so it works on both.
 			//noinspection unchecked
-			ArrayList<String> ignoredSlots = (ArrayList<String>) getObjectField(container, "mIgnoredSlots");
+			Collection<String> ignoredSlots = (Collection<String>) getObjectField(container, "mIgnoredSlots");
 
 			ignoredSlots.clear();
 
