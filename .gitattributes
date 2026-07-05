@@ -1,0 +1,25 @@
+# Normalize text by default; let git detect.
+* text=auto
+
+# Magisk/KernelSU module scripts run in an on-device shell — they MUST be LF.
+# CRLF makes the shell see a trailing \r on every line ("command not found",
+# broken installs). Force LF regardless of core.autocrlf / platform.
+*.sh              text eol=lf
+*.prop            text eol=lf
+MagiskModBase/META-INF/com/google/android/update-binary  text eol=lf
+MagiskModBase/META-INF/com/google/android/updater-script text eol=lf
+
+# Gradle wrapper / shell entrypoints
+gradlew           text eol=lf
+
+# Binaries — never apply text/eol filters (would corrupt them).
+*.apk    binary
+*.so     binary
+*.jar    binary
+*.ptl    binary
+*.png    binary
+*.jpg    binary
+*.webp   binary
+*.ttf    binary
+*.otf    binary
+MagiskModBase/sqlite3  binary
