@@ -51,6 +51,7 @@ Developer docs live in [`docs/`](docs/):
 - [Architecture](docs/ARCHITECTURE.md) — how the app / Xposed hooks / root service fit together
 - [Adding a modpack](docs/ADDING_A_MODPACK.md) — recipe for a new customization
 - [Building](docs/BUILDING.md) — toolchain setup and build commands
+- [Android 17 migration](docs/ANDROID17.md) — A17 structural changes, how to diagnose/fix breakage, device testing playbook
 <hr>
 
 ### Building
