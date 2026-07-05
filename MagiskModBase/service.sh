@@ -48,13 +48,14 @@ grantRootApps(){
 # we install the bundled APK directly. This is a no-op when the app is already
 # present (e.g. picked up from the priv-app mount on Magisk).
 ensureAppInstalled(){
-	# wait for PackageManager / boot to settle before checking or installing
+	# Install as early as possible: poll for the package service instead of a fixed
+	# sleep, so the one-time fallback install (first flash on KernelSU) happens the
+	# moment PackageManager is ready rather than seconds after boot.
 	local waited=0
-	while [ "$(getprop sys.boot_completed)" != "1" ] && [ $waited -lt 120 ]; do
-		sleep 2
-		waited=$((waited + 2))
+	while ! pm path android >/dev/null 2>&1 && [ $waited -lt 120 ]; do
+		sleep 1
+		waited=$((waited + 1))
 	done
-	sleep 5
 
 	# already installed (priv-app mount worked, or a previous fallback ran)? -> done
 	if pm path "$PKGNAME" >/dev/null 2>&1; then
