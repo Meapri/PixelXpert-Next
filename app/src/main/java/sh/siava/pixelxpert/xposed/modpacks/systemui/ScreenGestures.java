@@ -65,7 +65,7 @@ public class ScreenGestures extends XposedModPack {
 	private Object mStatusBarKeyguardViewManager;
 	private Object mDozeTouchTrigger;
 	private Object mKeyguardInteractor;
-	private Object mShadeInteractorSceneContainerImpl;
+	private Object mShadeInteractor;
 	private long mLastKGSingleTap = 0;
 
 	public ScreenGestures(Context context) {
@@ -103,14 +103,22 @@ public class ScreenGestures extends XposedModPack {
 
 		//A17QPR1 Scene implementation
 		ReflectedClass SceneWindowRootViewClass = ReflectedClass.ofIfPossible("com.android.systemui.scene.ui.view.SceneWindowRootView");
+		//A17 (stable): scene view is gone; touch is dispatched through the legacy shade window root
+		ReflectedClass NotificationShadeWindowViewClass = ReflectedClass.ofIfPossible("com.android.systemui.shade.NotificationShadeWindowView");
 		ReflectedClass ShadeInteractorSceneContainerImplClass = ReflectedClass.ofIfPossible("com.android.systemui.shade.domain.interactor.ShadeInteractorSceneContainerImpl");
+		//A17 (stable): the non-scene shade interactor; also exposes isAnyExpanded()
+		ReflectedClass ShadeInteractorImplClass = ReflectedClass.ofIfPossible("com.android.systemui.shade.domain.interactor.ShadeInteractorImpl");
 		ReflectedClass PulsingGestureListenerClass = ReflectedClass.ofIfPossible("com.android.systemui.shade.PulsingGestureListener");
 		ReflectedClass KeyguardInteractorClass = ReflectedClass.of("com.android.systemui.keyguard.domain.interactor.KeyguardInteractor");
 		ReflectedClass SettingsMenuElementProviderClass = ReflectedClass.ofIfPossible("com.android.systemui.keyguard.ui.composable.elements.SettingsMenuElementProvider");
 
-		ShadeInteractorSceneContainerImplClass //used to know if shade is open or not
+		ShadeInteractorSceneContainerImplClass //used to know if shade is open or not (pre-A17 scene)
 				.afterConstruction()
-				.run(param -> mShadeInteractorSceneContainerImpl = param.thisObject);
+				.run(param -> mShadeInteractor = param.thisObject);
+
+		ShadeInteractorImplClass //A17: same isAnyExpanded() contract, non-scene shade
+				.afterConstruction()
+				.run(param -> mShadeInteractor = param.thisObject);
 
 		PulsingGestureListenerClass //used to detect when a real single tap done on keyguard
 				.before("onSingleTapUp")
@@ -127,50 +135,13 @@ public class ScreenGestures extends XposedModPack {
 				.afterConstruction()
 				.run(param -> mKeyguardInteractor = param.thisObject);
 
-		SceneWindowRootViewClass //gestures on Scene implementation
+		SceneWindowRootViewClass //gestures on pre-A17 Scene implementation
 				.before("dispatchTouchEvent")
-				.run(param -> {
-					if(keyguardNotShowingCompose()) return;
+				.run(param -> handleShadeWindowTouch(param.getArg(0)));
 
-					MotionEvent ev = param.getArg(0);
-
-					int action = ev.getActionMasked();
-
-					if (isSingleTap() && action == ACTION_UP) {
-						if (doubleTapToSleepLockscreenEnabled && !isDozing)
-							sleep();
-					}
-
-					if (!holdScreenTorchEnabled) return;
-
-					if ((action == ACTION_DOWN || action == ACTION_MOVE)) {
-						if(turnedByTTT) //we really don't want to see swipe gestures during TTT
-						{
-							ev.setAction(ACTION_DOWN);
-						}
-						if (isSingleTap() && !SystemUtils.isFlashOn() && uptimeMillis() - ev.getDownTime() > HOLD_DURATION) {
-							turnedByTTT = true;
-
-							callMethod(SystemUtils.PowerManager(), "wakeUp", uptimeMillis());
-							SystemUtils.setFlash(true, false);
-							SystemUtils.vibrate(EFFECT_TICK, USAGE_ACCESSIBILITY);
-
-							new Thread(() -> { //if keyguard is dismissed for any reason (face or udfps touch), then:
-								while (turnedByTTT) {
-									try {
-										SystemUtils.threadSleep(200);
-										if (keyguardNotShowingCompose()) {
-											turnOffTTT();
-										}
-									} catch (Throwable ignored) {}
-								}
-							}).start();
-						}
-					}
-					else if (turnedByTTT) {
-						turnOffTTT();
-					}
-				});
+		NotificationShadeWindowViewClass //A17 (stable): non-scene shade window is the touch root
+				.before("dispatchTouchEvent")
+				.run(param -> handleShadeWindowTouch(param.getArg(0)));
 
 		PhoneStatusBarViewClass
 				.before("onTouchEvent")
@@ -373,11 +344,57 @@ public class ScreenGestures extends XposedModPack {
 		}
 	}
 
+	// Shared touch handler for the shade window root — used by both the pre-A17 scene view
+	// (SceneWindowRootView) and the A17 legacy shade window (NotificationShadeWindowView).
+	private void handleShadeWindowTouch(MotionEvent ev) {
+		if (ev == null || keyguardNotShowingCompose()) return;
+
+		int action = ev.getActionMasked();
+
+		if (isSingleTap() && action == ACTION_UP) {
+			if (doubleTapToSleepLockscreenEnabled && !isDozing)
+				sleep();
+		}
+
+		if (!holdScreenTorchEnabled) return;
+
+		if ((action == ACTION_DOWN || action == ACTION_MOVE)) {
+			if(turnedByTTT) //we really don't want to see swipe gestures during TTT
+			{
+				ev.setAction(ACTION_DOWN);
+			}
+			if (isSingleTap() && !SystemUtils.isFlashOn() && uptimeMillis() - ev.getDownTime() > HOLD_DURATION) {
+				turnedByTTT = true;
+
+				callMethod(SystemUtils.PowerManager(), "wakeUp", uptimeMillis());
+				SystemUtils.setFlash(true, false);
+				SystemUtils.vibrate(EFFECT_TICK, USAGE_ACCESSIBILITY);
+
+				new Thread(() -> { //if keyguard is dismissed for any reason (face or udfps touch), then:
+					while (turnedByTTT) {
+						try {
+							SystemUtils.threadSleep(200);
+							if (keyguardNotShowingCompose()) {
+								turnOffTTT();
+							}
+						} catch (Throwable ignored) {}
+					}
+				}).start();
+			}
+		}
+		else if (turnedByTTT) {
+			turnOffTTT();
+		}
+	}
+
 	private boolean keyguardNotShowingCompose()
 	{
+		//interactors not captured yet (early boot touch) -> treat as "not on keyguard" so gestures are skipped
+		if (mKeyguardInteractor == null || mShadeInteractor == null) return true;
+
 		return callMethod(getObjectField(mKeyguardInteractor, "isKeyguardShowing"), "getValue").equals(false)
 						|| callMethod(getObjectField(mKeyguardInteractor, "primaryBouncerShowing"), "getValue").equals(true)
-						|| (boolean) callMethod(callMethod(mShadeInteractorSceneContainerImpl, "isAnyExpanded"), "getValue");
+						|| (boolean) callMethod(callMethod(mShadeInteractor, "isAnyExpanded"), "getValue");
 	}
 
 	private void turnOffTTT() {
