@@ -34,7 +34,7 @@
     <string name="update_over_wifi_title">Check updates over WiFi only</string>
     <string name="update_over_wifi_summary">Check for updates in background only when connected to wifi</string>
     <string name="github_repo_title">GitHub repository</string>
-    <string name="github_repo_summary" translatable="false">siavash79/PixelXpert</string>
+    <string name="github_repo_summary" translatable="false">Meapri/PixelXpert-Next</string>
     <string name="telegram_group_title">Telegram channel</string>
     <string name="telegram_group_summary" translatable="false">\@PixelXpert_Github</string>
     <string name="usage_title">Usage</string>

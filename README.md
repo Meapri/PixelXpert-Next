@@ -1,30 +1,17 @@
-### This repository is Archived ###
-We have decided to shutdown the project indefinitely ([details](https://xdaforums.com/t/closed-mod-xposed-magisk-android-16-compatible-pixel-xpert-system-modifications-for-pixel-phones-12.4421743/post-90634455)). Therefore, this repository is archived. Feel free to fork it or use the codes for any purpose.
+# PixelXpert-Next
 
+**A community continuation of [PixelXpert](https://github.com/siavash79/PixelXpert) by @siavash79 & @ElTifo, which was archived by its original authors.**
 
-### For Pixel Stock Android 12 and 13 (Up to Nov 2022 - AOSP 13R8):  
-[![Latest Release for A12 & A13 up to Nov 2022](https://img.shields.io/badge/Download-v2.4.1-blue)](https://github.com/siavash79/PixelXpert/releases/tag/v2.4.1)  
+The upstream project was [shut down indefinitely](https://xdaforums.com/t/closed-mod-xposed-magisk-android-16-compatible-pixel-xpert-system-modifications-for-pixel-phones-12.4421743/post-90634455). PixelXpert-Next picks it up from the last `canary` state to keep it building and working on current Android/Pixel firmware. All credit for the original work belongs to the upstream authors and contributors.
 
-### For Pixel Stock Android 13 (Dec 2022) to Android 16 (June 2025):  
-[![Latest Release A13 up to A16](https://img.shields.io/badge/Download-v4.3.0-blue)](https://github.com/siavash79/PixelXpert/releases/tag/v4.3.0)  
+> **Status:** Early — this fork has just been rewired for independent builds/updates. Phase A = keep it compiling and working on the latest Pixel stock firmware. Phase B (later) = new customizations.
 
-### For Pixel Stock Android 16 QPR1 and newer:  
-[![Latest Release](https://img.shields.io/github/v/release/siavash79/PixelXpert?color=green&include_prereleases&label=Download%20Latest%20Stable)](https://github.com/siavash79/PixelXpert/releases/latest)
-[![Latest Canary Release](https://img.shields.io/badge/Download%20Latest-Canary-blue)](https://github.com/siavash79/PixelXpert/releases/tag/canary_builds)
-
-![Downloads - Stable channel](https://img.shields.io/github/downloads/siavash79/PixelXpert/total?color=red&label=Downloads%20-%20Stable%20Channel)
-
-
-
-[![Telegram URL](https://img.shields.io/badge/Telegram-Join-2CA5E?style=social&logo=telegram)](https://t.me/PixelXpert_Github)
-
-![Header Image](https://github.com/siavash79/PixelXpert/blob/canary/.github/PixelXpert_Banner_1280.jpg?raw=true)
-
-This is a mixed Xposed+Magisk module, which is made to allow customizations that are not originally designed in AOSP (Android Open Source Project). Please read thorough below before reaching to download links
 <hr>
 
-### **Features:**
-Currently, PixelXpert offers customizations on different aspects of system framework and SystemUI, including:
+PixelXpert is a mixed **Xposed + Magisk** module that enables customizations not available in AOSP, hooking into the system framework and SystemUI on **Google Pixel stock firmware**.
+
+### Features
+Customizations across:
 - Status bar
 - Quick Settings panel
 - Lock screen
@@ -36,68 +23,43 @@ Currently, PixelXpert offers customizations on different aspects of system frame
 - Screen properties
 <hr>
 
-### **Compatibility:**
-PixelXpert is ONLY compatible with pixel stock firmware on Google Pixel devices. Any custom ROM (including PE, PE plus, pixel plus ui and etc) or stock ROM outside stock pixel firmware on Google pixel devices (e.g. OneUI on Samsung, MIUI on Xiaomi and etc) is not supported and may not be fully (or even at all) compatible.
+### Compatibility
+**ONLY** compatible with Google Pixel devices on **stock Pixel firmware**. Custom ROMs (PixelExperience, etc.) and non-Pixel stock ROMs (OneUI, MIUI, …) are not supported. This fork targets **Android 16 (compileSdk/minSdk 36)** and newer, continuing from upstream's final canary line.
 
-Here is the compatibility chart according to different android versions and QPRs:
-
-- Android 12/12.1 and 13 (up to Nov 2022): [final version: v2.4.1](https://github.com/siavash79/PixelXpert/releases/tag/v2.4.1).
-- Android 13 stable QPR3 to Android 16 (June 2022): [final version: v.4.3.0](https://github.com/siavash79/PixelXpert/releases/tag/v4.3.0).
-- Android 16 stable QPR1 and newer: [latest stable version](https://github.com/siavash79/PixelXpert/releases/latest)
+For older Android versions, use the upstream releases:
+- Android 12/12.1 & 13 (up to Nov 2022): [v2.4.1](https://github.com/siavash79/PixelXpert/releases/tag/v2.4.1)
+- Android 13 QPR3 → 16 (June 2025): [v4.3.0](https://github.com/siavash79/PixelXpert/releases/tag/v4.3.0)
 <hr>
 
-### **Prerequisites:**
-- Compatible ROM (see Compatibility text above)
-- Device Rooted with Magisk 24.2+ or KSU
-- LSPosed (Zygisk Version preferred) (For Android 14+ use [LSPosed fork by JingMatrix](https://github.com/JingMatrix/LSPosed/releases))
+### Prerequisites
+- Compatible Pixel stock ROM (see Compatibility)
+- Rooted with Magisk 24.2+ or KernelSU
+- LSPosed (Zygisk preferred). For Android 14+ use the [LSPosed fork by JingMatrix](https://github.com/JingMatrix/LSPosed/releases)
 <hr>
 
-### **How to install:**
-- Download the stable magisk module according to your firmware as mentioned above 
-- Install in magisk/KSU
-- Reboot (no bootloops are expected)
-- Open PixelXpert app and apply changes
+### How to install
+1. Build the Magisk module zip (see Building below) — no prebuilt releases are published for this fork yet
+2. Install the zip in Magisk/KernelSU
+3. Reboot
+4. Open the PixelXpert app and apply changes
 
-P.S. For KSU, there is an extra step of granting root access to PixelXpert as it doesn't request automatically as in Magisk
+For KernelSU, grant root access to PixelXpert manually (it isn't requested automatically as in Magisk).
 <hr>
 
-### **Release Variants:**  
-The module is also released in 2 flavors with different manual download and update procedures. But both can utilize automated updates through magisk manager, or through in-app updater (for canary, updates will not count against the module's download count).
+### Building
+Requires **JDK 21** and the **Android SDK (Platform 36, build-tools)**. No NDK compilation is needed. The Xposed API jar is bundled under `app/lib/`.
 
-<ins>Stable release:</ins> 
-- Manual Install/Update: through repository's Github release page (link below) AND through in-app updater
+```
+./gradlew assembleDebug        # debug APK
+./gradlew buildCanary -Pchannel=canary   # canary Magisk module (as CI does)
+```
 
-<ins>Canary release:</ins>
-- Manual Install/Update: through repository's Actions page and [telegram channel](https://t.me/PixelXpert_Github) (latest version is available from [here](https://github.com/siavash79/PixelXpert/releases/tag/canary_builds) also)
-
-*No matter which flavor you're on, you can always switch to the other one with in-app updater
+Release/canary builds are signed via `ReleaseKey.properties` + a keystore; see `.github/workflows/makeCanaryRelease.yml` for the CI pipeline.
 <hr>
 
-### **Translations:**  
-[![Crowdin](https://badges.crowdin.net/aospmods/localized.svg)](https://crowdin.com/project/aospmods)  
-Want to help translate PixelXpert to your language? Visit [Crowdin](https://crowdin.com/project/aospmods)
+### Credits
+Original PixelXpert by **@siavash79 & @ElTifo**, with UI by @Mahmud0808 and many contributors. Built on Magisk (@topjohnwu), Xposed (@rovo89), LSPosed, and others. See upstream for the full credit list. This fork exists only to continue their open-source work.
 <hr>
 
-### **Donations:**
-This project is open source and free for usage, build or copy. However, if you really feel like it, you can donate to your favorite charity on our behalf, or help funding education for children in need, at [Child Foundation](https://mycf.childfoundation.org/s/donate)
-<hr>
-
-### **Credits / Thanks:**
-- Android Team
-- @topjohnwu for Magisk
-- @rovo89 for Xposed
-- Team LSPosed
-- apsun@github for remote-preferences
-- @nijel8 for double-tap to wake
-
-
-**UI design:**  
-- @Mahmud0808  
-
-**Graphic design:**  
-- JstormZx@Telegram (Icon and Banner) 
-- RKBDI@Telegram  (Icon)
-
-**Brought to you by:**
-@siavash79 & @ElTifo
-<hr>
+### License
+Same license as upstream — see [LICENSE](LICENSE).
