@@ -147,13 +147,23 @@ public class TaskbarActivator extends XposedModPack {
 					setObjectField(param.thisObject, "recentsButton", navButtonContainer.findViewById(idOf( ThreeButtonRight)));
 				});
 
-		//enable taskbar
+		//enable taskbar (pre-A17: boolean isTablet())
 		DisplayControllerInfoClass
 				.before("isTablet")
 				.run(param -> {
 					if (taskbarMode == TASKBAR_DEFAULT) return;
 
 					param.setResult(taskbarMode == TASKBAR_ON);
+				});
+
+		//A17: isTablet() was replaced by getDeviceType() returning an int
+		//(TYPE_PHONE=0, TYPE_MULTI_DISPLAY=1, TYPE_TABLET=2, TYPE_DESKTOP=3)
+		DisplayControllerInfoClass
+				.before("getDeviceType")
+				.run(param -> {
+					if (taskbarMode == TASKBAR_DEFAULT) return;
+
+					param.setResult(taskbarMode == TASKBAR_ON ? 2 /*TYPE_TABLET*/ : 0 /*TYPE_PHONE*/);
 				});
 
 		//enable taskbar
